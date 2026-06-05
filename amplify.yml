@@ -1,0 +1,39 @@
+version: 1
+applications:
+  - frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+            # Amplify injects env vars into the build shell but does NOT always
+            # forward non-NEXT_PUBLIC_ vars to the Next.js SSR Lambda at runtime.
+            # Write server secrets to .env.production so Next bundles them into
+            # the server output. A Node script keeps multi-line values (e.g. the
+            # FIREBASE_SERVICE_ACCOUNT private key) on a single escaped line.
+            - |
+              node -e "
+                const fs = require('fs');
+                const vars = [
+                  'FIREBASE_SERVICE_ACCOUNT',
+                  'FIREBASE_STORAGE_BUCKET',
+                  'LEADS_NOTIFY_EMAIL',
+                ];
+                const lines = vars
+                  .filter(v => process.env[v] !== undefined)
+                  .map(v => v + '=' + process.env[v].replace(/\n/g, '\\\\n'));
+                fs.writeFileSync('.env.production', lines.join('\n') + '\n');
+                console.log('Wrote', lines.length, 'server env vars to .env.production');
+              "
+              # Append NEXT_PUBLIC_* vars (safe, client-visible) for the build.
+              env | grep -E '^NEXT_PUBLIC_' >> .env.production || true
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+          - .next/cache/**/*

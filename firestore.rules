@@ -1,0 +1,64 @@
+rules_version = '2';
+
+// ===========================================================================
+// Norfield Initiative — Firestore security rules
+//
+// Access model:
+//   - Marketing & resource content is static (served by Next.js), not Firestore.
+//   - `leads` are written ONLY by the server (Admin SDK) — never client-readable.
+//   - Each signed-in user can read ONLY their own portal data, nested under
+//     users/{uid}. Project/document writes are server/admin-only; users may
+//     create messages addressed to their engagement team.
+//   - Admin SDK (server) bypasses these rules entirely.
+// ===========================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // --- Leads: server-only (Admin SDK). No client access. -----------------
+    match /leads/{leadId} {
+      allow read, write: if false;
+    }
+
+    // --- Per-user portal data ----------------------------------------------
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      // Profile fields a user may maintain about themselves.
+      allow create, update: if isOwner(uid);
+      allow delete: if false;
+
+      // Projects — read-only to the client; the team manages them server-side.
+      match /projects/{projectId} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+
+      // Documents — read-only to the client; uploaded server-side.
+      match /documents/{docId} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+
+      // Messages — client can read its thread and send new messages.
+      match /messages/{messageId} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && request.resource.data.body is string
+          && request.resource.data.body.size() > 0
+          && request.resource.data.body.size() < 5000;
+        allow update, delete: if false;
+      }
+    }
+
+    // Default deny for anything not explicitly matched above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

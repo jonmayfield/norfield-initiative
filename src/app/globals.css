@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Norfield Initiative — monochrome design system
+   Channel tokens are "R G B" so Tailwind /opacity modifiers work.
+   Default theme is dark (matching the brand reference); a .light
+   class on <html> flips to the inverse palette.
+   ============================================================ */
+:root {
+  color-scheme: dark;
+
+  --c-bg: 10 10 11;            /* #0A0A0B near-black page */
+  --c-surface: 22 22 24;      /* #161618 cards / panels */
+  --c-surface-2: 32 32 35;    /* #202023 raised / muted */
+  --c-fg: 245 245 247;        /* #F5F5F7 primary text */
+  --c-fg-muted: 161 161 168;  /* #A1A1A8 secondary text */
+  --c-fg-faint: 110 110 117;  /* #6E6E75 tertiary text */
+
+  --c-accent: 245 245 247;    /* high-contrast action color (light on dark) */
+  --c-accent-fg: 10 10 11;    /* text on accent fills */
+
+  --c-line: rgba(255, 255, 255, 0.10);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.light {
+  color-scheme: light;
+
+  --c-bg: 247 247 245;        /* #F7F7F5 warm off-white */
+  --c-surface: 255 255 255;   /* #FFFFFF cards */
+  --c-surface-2: 238 238 235; /* #EEEEEB raised / muted */
+  --c-fg: 14 14 16;           /* #0E0E10 ink */
+  --c-fg-muted: 90 90 96;     /* #5A5A60 secondary */
+  --c-fg-faint: 140 140 146;  /* #8C8C92 tertiary */
+
+  --c-accent: 14 14 16;       /* dark action on light */
+  --c-accent-fg: 247 247 245;
+
+  --c-line: rgba(14, 14, 16, 0.12);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  scroll-padding-top: 6rem;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background: rgb(var(--c-bg));
+  color: rgb(var(--c-fg));
+  font-family: var(--font-sans);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgb(var(--c-fg));
+  color: rgb(var(--c-bg));
+}
+
+/* Hairline divider used across sections */
+.hairline {
+  border-top: 1px solid var(--c-line);
+}
+
+/* Reusable component classes */
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-container px-5 sm:px-8;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-pill px-5 py-2.5 text-sm font-medium transition-colors duration-200;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-accent-fg hover:opacity-90;
+  }
+  .btn-outline {
+    @apply btn border border-line text-ink hover:bg-surface;
+  }
+  .btn-ghost {
+    @apply btn text-ink-muted hover:text-ink;
+  }
+
+  .pill {
+    @apply inline-flex items-center gap-2 rounded-pill border border-line px-4 py-2 text-sm text-ink;
+  }
+
+  .card {
+    @apply rounded-card border border-line bg-surface;
+  }
+
+  .eyebrow {
+    @apply text-xs font-medium uppercase tracking-[0.18em] text-ink-faint;
+  }
+
+  .link-underline {
+    @apply underline decoration-line underline-offset-4 transition-colors hover:decoration-ink;
+  }
+}
+
+/* Subtle entrance animation */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Prose styling for articles (resource center) */
+.prose-norfield {
+  @apply text-ink-muted leading-relaxed;
+}
+.prose-norfield h2 {
+  @apply mt-12 mb-4 text-2xl font-semibold tracking-tight text-ink;
+}
+.prose-norfield h3 {
+  @apply mt-8 mb-3 text-xl font-semibold tracking-tight text-ink;
+}
+.prose-norfield p {
+  @apply mb-5;
+}
+.prose-norfield ul {
+  @apply mb-5 list-disc space-y-2 pl-6;
+}
+.prose-norfield ol {
+  @apply mb-5 list-decimal space-y-2 pl-6;
+}
+.prose-norfield a {
+  @apply text-ink link-underline;
+}
+.prose-norfield blockquote {
+  @apply my-6 border-l-2 border-line pl-5 italic text-ink;
+}
+.prose-norfield strong {
+  @apply font-semibold text-ink;
+}
